@@ -13,3 +13,12 @@ The 32 bits are split up into 3 regions:
   1.  2.              3.
 00000 0 0000000000000000000000000
 ```
+
+### Pointer
+The pointer is a plain 5 bit counter which shows the place of the decimal on a binary level. This means that if the pointer reads 5, that the last 5 bits of the value part are considered the fraction part.
+
+### Sign
+The sign is a simple bit that shows if the number is negative or positive. 0 for positive, 1 for negative.
+
+### Value
+The value is composed of 2 different integer numbers which get seperated by the pointer. The number specifically isnt stored in an exponent so that the inaccuracy is removed. 
