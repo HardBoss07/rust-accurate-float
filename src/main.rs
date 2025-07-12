@@ -31,6 +31,7 @@ fn main() {
     let af32second = 0b01110101000101011100111001110110;
     decode(af32second);
 
+    encode("12.7");
 }
 
 fn decode(af32: u32) {
@@ -76,4 +77,25 @@ fn decode(af32: u32) {
     println!("Final value: {}{}.{}", sign_str, int_val, frac_val);
 
     println!("-------------------------------\n");
+}
+
+fn encode(af32_str: &str) {
+    let is_negative = af32_str.starts_with("-");
+
+    let trimmed = if is_negative {
+        &af32_str[1..]
+    } else {
+        af32_str
+    };
+
+    let parts: Vec<&str> = trimmed.split('.').collect();
+
+    let int_str = parts.get(0).unwrap_or(&"");
+    let frac_str = parts.get(1).unwrap_or(&"");
+
+    let int_val: u32 = int_str.parse::<u32>().unwrap();
+    let frac_val: u32 = frac_str.parse::<u32>().unwrap();
+
+    println!("int bin: {:032b}", int_val);
+    println!("frac bin: {:032b}", frac_val);
 }
