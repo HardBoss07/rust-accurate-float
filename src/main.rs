@@ -31,7 +31,7 @@ fn main() {
     let af32second = 0b01110101000101011100111001110110;
     decode(af32second);
 
-    encode("12.7");
+    encode("12.6");
 }
 
 fn decode(af32: u32) {
@@ -80,7 +80,7 @@ fn decode(af32: u32) {
 }
 
 fn encode(af32_str: &str) {
-    let is_negative = af32_str.starts_with("-");
+    let is_negative = af32_str.starts_with('-');
 
     let trimmed = if is_negative {
         &af32_str[1..]
@@ -90,12 +90,35 @@ fn encode(af32_str: &str) {
 
     let parts: Vec<&str> = trimmed.split('.').collect();
 
-    let int_str = parts.get(0).unwrap_or(&"");
-    let frac_str = parts.get(1).unwrap_or(&"");
+    let int_str = parts.get(0).unwrap_or(&"0");
+    let frac_str = parts.get(1).unwrap_or(&"0");
 
-    let int_val: u32 = int_str.parse::<u32>().unwrap();
-    let frac_val: u32 = frac_str.parse::<u32>().unwrap();
+    let int_val: u32 = int_str.parse().unwrap();
+    let frac_val: u32 = frac_str.parse().unwrap();
 
-    println!("int bin: {:032b}", int_val);
-    println!("frac bin: {:032b}", frac_val);
+    // Pointer = bit length of frac_val
+    let pointer = bit_length(frac_val);
+
+    println!("int bin: {:026b}", int_val);
+    println!("frac bin: {:026b}", frac_val);
+    println!("pointer: {:05b} = {}", pointer, pointer);
+    println!("is negative: {:b}", is_negative as u8);
+
+    // Shift int_val by pointer bits and OR with frac_val
+    let value = (int_val << pointer) | frac_val;
+
+    let result = (pointer << 27)
+               | ((is_negative as u32) << 26)
+               | (value & 0x03FF_FFFF);
+
+    println!("result bin: {:032b}", result);
+}
+
+fn bit_length(mut n: u32) -> u32 {
+    let mut length = 0;
+    while n > 0 {
+        n >>= 1;
+        length += 1;
+    }
+    length - 1
 }
