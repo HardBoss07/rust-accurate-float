@@ -31,10 +31,15 @@ fn main() {
     let af32second = 0b01110101000101011100111001110110;
     decode(af32second);
 
-    encode("12.6");
+    let encoded = encode("-21.27");
+    decode(encoded);
+
+    if encoded == decode(encoded) {
+        println!("matches!!");
+    }
 }
 
-fn decode(af32: u32) {
+fn decode(af32: u32) -> u32 {
     println!("--- Decoding AccurateFloat ---");
     println!("Raw binary (32 bits): {:032b}", af32);
 
@@ -77,9 +82,11 @@ fn decode(af32: u32) {
     println!("Final value: {}{}.{}", sign_str, int_val, frac_val);
 
     println!("-------------------------------\n");
+
+    af32
 }
 
-fn encode(af32_str: &str) {
+fn encode(af32_str: &str) -> u32 {
     let is_negative = af32_str.starts_with('-');
 
     let trimmed = if is_negative {
@@ -112,6 +119,7 @@ fn encode(af32_str: &str) {
                | (value & 0x03FF_FFFF);
 
     println!("result bin: {:032b}", result);
+    result
 }
 
 fn bit_length(mut n: u32) -> u32 {
@@ -120,5 +128,5 @@ fn bit_length(mut n: u32) -> u32 {
         n >>= 1;
         length += 1;
     }
-    length - 1
+    length
 }
