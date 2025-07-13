@@ -28,7 +28,7 @@ Here will be shown some examples from the decimal representation into the binary
 
 ### Binary to Decimal
 
-Binary Number: `00010 0 00000000000000000001100110`
+Binary Number: `00011 0 00000000000000000001100110`
 | Part    | Value |
 |---------|-------|
 | Pointer |     3 |
