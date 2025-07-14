@@ -46,6 +46,30 @@ pub fn decode(af32: u32) -> String {
     result
 }
 
+pub fn decode_as_tuple(af32: u32) -> (bool, u32, u32) {
+    let pointer = (af32 >> 27) & 0b11111;
+    let sign_bit = (af32 >> 26) & 0b1;
+    let value = af32 & 0x03FF_FFFF;
+
+    let value_bin_str = format!("{:026b}", value);
+    let decimal_pos = 26 - pointer;
+
+    let (int_bin, frac_bin) = if decimal_pos <= 0 {
+        ("0", &value_bin_str[..])
+    } else if decimal_pos >= 26 {
+        (&value_bin_str[..], "0")
+    } else {
+        value_bin_str.split_at(decimal_pos as usize)
+    };
+
+    let int_val = u32::from_str_radix(int_bin, 2).unwrap_or(0);
+    let frac_val = u32::from_str_radix(frac_bin, 2).unwrap_or(0);
+    let sign = sign_bit == 1;
+
+    (sign, int_val, frac_val)
+}
+
+
 pub fn encode(af32_str: &str) -> u32 {
     println!("--- Encoding AccurateFloat ---");
     println!("Input string: {}", af32_str);
