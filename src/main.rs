@@ -87,6 +87,9 @@ fn decode(af32: u32) -> u32 {
 }
 
 fn encode(af32_str: &str) -> u32 {
+    println!("--- Encoding AccurateFloat ---");
+    println!("Input string: {}", af32_str);
+
     let is_negative = af32_str.starts_with('-');
 
     let trimmed = if is_negative {
@@ -96,29 +99,37 @@ fn encode(af32_str: &str) -> u32 {
     };
 
     let parts: Vec<&str> = trimmed.split('.').collect();
-
     let int_str = parts.get(0).unwrap_or(&"0");
     let frac_str = parts.get(1).unwrap_or(&"0");
 
-    let int_val: u32 = int_str.parse().unwrap();
-    let frac_val: u32 = frac_str.parse().unwrap();
+    let int_val: u32 = int_str.parse().unwrap_or(0);
+    let frac_val: u32 = frac_str.parse().unwrap_or(0);
 
-    // Pointer = bit length of frac_val
     let pointer = bit_length(frac_val);
-
-    println!("int bin: {:026b}", int_val);
-    println!("frac bin: {:026b}", frac_val);
-    println!("pointer: {:05b} = {}", pointer, pointer);
-    println!("is negative: {:b}", is_negative as u8);
-
-    // Shift int_val by pointer bits and OR with frac_val
     let value = (int_val << pointer) | frac_val;
+
+    println!("Integer part (str):      {} -> {:b}", int_str, int_val);
+    println!("Fraction part (str):     {} -> {:b}", frac_str, frac_val);
+    println!("Pointer (5 bits):        {:05b} = {} (fraction bit length)", pointer, pointer);
+    println!("Sign bit (1 bit):        {} -> {}", is_negative as u8, if is_negative { "Negative" } else { "Positive" });
+
+    let value_bin = format!("{:026b}", value);
+    let (int_bin, frac_bin) = if pointer >= 26 {
+        (&value_bin[..], "0")
+    } else {
+        value_bin.split_at((26 - pointer) as usize)
+    };
+
+    println!("Binary with decimal:     {}.{} (decimal at position {})", int_bin, frac_bin, pointer);
+    println!("Combined value (26 bits): {:026b} = {}", value, value);
 
     let result = (pointer << 27)
                | ((is_negative as u32) << 26)
                | (value & 0x03FF_FFFF);
 
-    println!("result bin: {:032b}", result);
+    println!("Encoded binary (32 bits): {:032b}", result);
+    println!("-------------------------------\n");
+
     result
 }
 
