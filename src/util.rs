@@ -117,7 +117,15 @@ pub fn encode(af32_str: &str) -> u32 {
     result
 }
 
-fn bit_length(mut n: u32) -> u32 {
+pub fn max(numb_a: u32, numb_b: u32) -> u32 {
+    if numb_a > numb_b {
+        numb_a
+    } else {
+        numb_b
+    }
+}
+
+pub fn bit_length(mut n: u32) -> u32 {
     let mut length = 0;
     while n > 0 {
         n >>= 1;
