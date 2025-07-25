@@ -117,11 +117,19 @@ pub fn encode(af32_str: &str) -> u32 {
     result
 }
 
-pub fn max(numb_a: u32, numb_b: u32) -> u32 {
+pub fn f_max(numb_a: u32, numb_b: u32) -> u32 {
     if numb_a > numb_b {
         numb_a
     } else {
         numb_b
+    }
+}
+
+pub fn w_max(numb_a: u32, numb_b: u32) -> u32 {
+    if numb_a > numb_b {
+        numb_a + 1 // adding trailing zero for carrying over
+    } else {
+        numb_b + 1 // adding trailing zero for carrying over
     }
 }
 
