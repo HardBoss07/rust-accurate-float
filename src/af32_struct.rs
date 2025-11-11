@@ -35,7 +35,15 @@ impl From<String> for af32 {
 
 impl From<f64> for af32 {
     fn from(val: f64) -> Self {
-        // Convert float → string → custom encoder
+        // Convert float -> string -> custom encoder
+        let formatted = format!("{}", val);
+        Self { bits: encode(&formatted) }
+    }
+}
+
+impl From<f32> for af32 {
+    fn from(val: f32) -> Self {
+        // Convert float -> string -> custom encoder
         let formatted = format!("{}", val);
         Self { bits: encode(&formatted) }
     }
