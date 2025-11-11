@@ -3,7 +3,7 @@ pub mod sub;
 pub mod mul;
 pub mod div;
 
-use crate::accurate_float::AccurateFloat;
+use crate::af32_struct::af32;
 
 pub trait AccurateOps {
     fn add(self, other: Self) -> Self;
@@ -12,7 +12,7 @@ pub trait AccurateOps {
     fn div(self, other: Self) -> Self;
 }
 
-impl AccurateOps for AccurateFloat {
+impl AccurateOps for af32 {
     fn add(self, other: Self) -> Self {
         add::add(self, other)
     }

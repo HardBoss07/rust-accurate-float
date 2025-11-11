@@ -2,11 +2,11 @@ use crate::util::{encode, decode};
 use std::ops::{Add, Sub, Mul, Div};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct AccurateFloat {
+pub struct af32 {
     pub bits: u32,
 }
 
-impl AccurateFloat {
+impl af32 {
     pub fn new_from_str(value: &str) -> Self {
         Self { bits: encode(value) }
     }
@@ -21,49 +21,49 @@ impl AccurateFloat {
 }
 
 // Conversion traits for .into()
-impl From<&str> for AccurateFloat {
+impl From<&str> for af32 {
     fn from(val: &str) -> Self {
         Self { bits: encode(val) }
     }
 }
 
-impl From<String> for AccurateFloat {
+impl From<String> for af32 {
     fn from(val: String) -> Self {
         Self { bits: encode(&val) }
     }
 }
 
-impl From<f64> for AccurateFloat {
+impl From<f64> for af32 {
     fn from(val: f64) -> Self {
-        // Only uses float -> string formatting, no float ops
+        // Convert float → string → custom encoder
         let formatted = format!("{}", val);
         Self { bits: encode(&formatted) }
     }
 }
 
 // Operator overloading
-impl Add for AccurateFloat {
+impl Add for af32 {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         crate::math::add::add(self, rhs)
     }
 }
 
-impl Sub for AccurateFloat {
+impl Sub for af32 {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         crate::math::sub::sub(self, rhs)
     }
 }
 
-impl Mul for AccurateFloat {
+impl Mul for af32 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self::Output {
         crate::math::mul::mul(self, rhs)
     }
 }
 
-impl Div for AccurateFloat {
+impl Div for af32 {
     type Output = Self;
     fn div(self, rhs: Self) -> Self::Output {
         crate::math::div::div(self, rhs)

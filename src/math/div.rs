@@ -1,6 +1,6 @@
-use crate::accurate_float::AccurateFloat;
+use crate::af32_struct::af32;
 
-pub fn div(a: AccurateFloat, b: AccurateFloat) -> AccurateFloat {
+pub fn div(a: af32, b: af32) -> af32 {
     // future logic for accurate division
-    AccurateFloat { bits: a.bits / b.bits } // placeholder
+    af32 { bits: a.bits / b.bits } // placeholder
 }

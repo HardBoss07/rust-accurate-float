@@ -1,5 +1,5 @@
-pub mod accurate_float;
+pub mod af32_struct;
 pub mod util;
 pub mod math;
 
-pub use accurate_float::AccurateFloat;
+pub use af32_struct::af32;

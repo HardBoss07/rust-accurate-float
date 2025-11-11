@@ -1,5 +1,5 @@
 pub fn decode(af32: u32) -> String {
-    println!("--- Decoding AccurateFloat ---");
+    println!("--- Decoding af32 ---");
     println!("Raw binary (32 bits): {:032b}", af32);
 
     // Extract parts
@@ -71,7 +71,7 @@ pub fn decode_as_tuple(af32: u32) -> (bool, u32, u32) {
 
 
 pub fn encode(af32_str: &str) -> u32 {
-    println!("--- Encoding AccurateFloat ---");
+    println!("--- Encoding af32 ---");
     println!("Input string: {}", af32_str);
 
     let is_negative = af32_str.starts_with('-');

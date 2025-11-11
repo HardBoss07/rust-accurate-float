@@ -1,6 +1,6 @@
-use crate::accurate_float::AccurateFloat;
+use crate::af32_struct::af32;
 
-pub fn sub(a: AccurateFloat, b: AccurateFloat) -> AccurateFloat {
+pub fn sub(a: af32, b: af32) -> af32 {
     // future logic for accurate subtraction
-    AccurateFloat { bits: a.bits - b.bits } // placeholder
+    af32 { bits: a.bits - b.bits } // placeholder
 }
