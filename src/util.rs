@@ -7,32 +7,34 @@ pub fn decode(af32: u32) -> String {
         println!("Raw binary (32 bits): {:032b}", af32);
     }
 
-    // Extract parts
+    // Extract fields
     let pointer = (af32 >> 27) & 0b11111;
-    let sign_bit = (af32 >> 26) & 0b1;
-    let value = af32 & 0x03FF_FFFF; // 26 bits
+    let raw_value = (af32 & 0x07FF_FFFF) as i32; // 27 bits
 
-    if DEBUG_PRINTS {
-        println!("Pointer (5 bits):       {:05b} = {}", pointer, pointer);
-        println!("Sign bit (1 bit):       {} -> {}", sign_bit, if sign_bit == 1 { "Negative" } else { "Positive" });
-        println!("Value (26 bits):        {:026b} = {}", value, value);
-    }
-
-    // Split bits for decimal point
-    let value_bin_str = format!("{:026b}", value);
-    let decimal_pos = 26 - pointer;
-
-    let (int_bin, frac_bin) = if decimal_pos <= 0 {
-        ("0", &value_bin_str[..])
-    } else if decimal_pos >= 26 {
-        (&value_bin_str[..], "0")
+    // Sign-extend 27-bit two’s complement
+    let signed_value = if raw_value & (1 << 26) != 0 {
+        raw_value | !0x07FF_FFFF
     } else {
-        value_bin_str.split_at(decimal_pos as usize)
+        raw_value
     };
 
     if DEBUG_PRINTS {
-        println!("Binary with decimal:    {}.{} (decimal at position {})", int_bin, frac_bin, pointer);
+        println!("Pointer (5 bits): {}", pointer);
+        println!("Signed value (27 bits): {} ({:027b})", signed_value, raw_value);
     }
+
+    // Represent as binary with decimal split
+    let abs_value = signed_value.abs() as u32;
+    let value_bin = format!("{:027b}", abs_value);
+    let dec_pos = 27 - pointer;
+
+    let (int_bin, frac_bin) = if dec_pos >= 27 {
+        (&value_bin[..], "0")
+    } else if dec_pos <= 0 {
+        ("0", &value_bin[..])
+    } else {
+        value_bin.split_at(dec_pos as usize)
+    };
 
     let int_val = u32::from_str_radix(int_bin, 2).unwrap_or(0);
     let frac_val = u32::from_str_radix(frac_bin, 2).unwrap_or(0);
@@ -42,7 +44,7 @@ pub fn decode(af32: u32) -> String {
         println!("Fraction part (binary): {} -> {}", frac_bin, frac_val);
     }
 
-    let sign_str = if sign_bit == 1 { "-" } else { "+" };
+    let sign_str = if signed_value < 0 { "-" } else { "" };
     let result = format!("{}{}.{}", sign_str, int_val, frac_val);
 
     if DEBUG_PRINTS {
@@ -53,27 +55,34 @@ pub fn decode(af32: u32) -> String {
     result
 }
 
-pub fn decode_as_tuple(af32: u32) -> (bool, u32, u32) {
+pub fn decode_as_tuple(af32: u32) -> (bool, i32, u32) {
     let pointer = (af32 >> 27) & 0b11111;
-    let sign_bit = (af32 >> 26) & 0b1;
-    let value = af32 & 0x03FF_FFFF;
+    let raw_value = (af32 & 0x07FF_FFFF) as i32;
 
-    let value_bin_str = format!("{:026b}", value);
-    let decimal_pos = 26 - pointer;
-
-    let (int_bin, frac_bin) = if decimal_pos <= 0 {
-        ("0", &value_bin_str[..])
-    } else if decimal_pos >= 26 {
-        (&value_bin_str[..], "0")
+    // Sign-extend 27-bit two’s complement
+    let signed_value = if raw_value & (1 << 26) != 0 {
+        raw_value | !0x07FF_FFFF
     } else {
-        value_bin_str.split_at(decimal_pos as usize)
+        raw_value
+    };
+
+    let abs_value = signed_value.abs() as u32;
+    let value_bin = format!("{:027b}", abs_value);
+    let dec_pos = 27 - pointer;
+
+    let (int_bin, frac_bin) = if dec_pos >= 27 {
+        (&value_bin[..], "0")
+    } else if dec_pos <= 0 {
+        ("0", &value_bin[..])
+    } else {
+        value_bin.split_at(dec_pos as usize)
     };
 
     let int_val = u32::from_str_radix(int_bin, 2).unwrap_or(0);
     let frac_val = u32::from_str_radix(frac_bin, 2).unwrap_or(0);
-    let sign = sign_bit == 1;
+    let is_negative = signed_value < 0;
 
-    (sign, int_val, frac_val)
+    (is_negative, if is_negative { -(int_val as i32) } else { int_val as i32 }, frac_val)
 }
 
 pub fn encode(af32_str: &str) -> u32 {
@@ -83,45 +92,33 @@ pub fn encode(af32_str: &str) -> u32 {
     }
 
     let is_negative = af32_str.starts_with('-');
-
-    let trimmed = if is_negative {
-        &af32_str[1..]
-    } else {
-        af32_str
-    };
+    let trimmed = af32_str.trim_start_matches('-');
 
     let parts: Vec<&str> = trimmed.split('.').collect();
     let int_str = parts.get(0).unwrap_or(&"0");
     let frac_str = parts.get(1).unwrap_or(&"0");
 
-    let int_val: u32 = int_str.parse().unwrap_or(0);
-    let frac_val: u32 = frac_str.parse().unwrap_or(0);
+    let int_val: i32 = int_str.parse().unwrap_or(0);
+    let frac_val: i32 = frac_str.parse().unwrap_or(0);
 
-    let pointer = bit_length(frac_val);
-    let value = (int_val << pointer) | frac_val;
+    let pointer = bit_length(frac_val as u32);
+    let mut combined: i32 = (int_val << pointer) | frac_val;
 
-    if DEBUG_PRINTS {
-        println!("Integer part (str):      {} -> {:b}", int_str, int_val);
-        println!("Fraction part (str):     {} -> {:b}", frac_str, frac_val);
-        println!("Pointer (5 bits):        {:05b} = {}", pointer, pointer);
-        println!("Sign bit (1 bit):        {} -> {}", is_negative as u8, if is_negative { "Negative" } else { "Positive" });
+    if is_negative {
+        combined = -combined;
     }
 
-    let value_bin = format!("{:026b}", value);
-    let (int_bin, frac_bin) = if pointer >= 26 {
-        (&value_bin[..], "0")
-    } else {
-        value_bin.split_at((26 - pointer) as usize)
-    };
+    // Mask to 27-bit two’s complement
+    let encoded_value = (combined as u32) & 0x07FF_FFFF;
 
     if DEBUG_PRINTS {
-        println!("Binary with decimal:     {}.{} (decimal at position {})", int_bin, frac_bin, pointer);
-        println!("Combined value (26 bits): {:026b} = {}", value, value);
+        println!("Integer part (str):  {} -> {:b}", int_str, int_val);
+        println!("Fraction part (str): {} -> {:b}", frac_str, frac_val);
+        println!("Pointer (5 bits):    {:05b} = {}", pointer, pointer);
+        println!("Combined signed value: {} -> {:027b}", combined, encoded_value);
     }
 
-    let result = (pointer << 27)
-               | ((is_negative as u32) << 26)
-               | (value & 0x03FF_FFFF);
+    let result = (pointer << 27) | encoded_value;
 
     if DEBUG_PRINTS {
         println!("Encoded binary (32 bits): {:032b}", result);
