@@ -4,9 +4,9 @@ use accurate_float::{af32, util};
 mod tests {
     use super::*;
 
-        #[test]
+    #[test]
     fn test_encode_positive_simple() {
-        // +5.0 → pointer=0, value=5 (binary 0000000000000000000000101)
+        // +5.0 -> pointer=0, value=5 (binary 0000000000000000000000101)
         let encoded = util::encode("5.0");
         let expected_pointer = 0 << 27;
         let expected_value = 0b0000000000000000000000101; // 27 bits
@@ -75,12 +75,122 @@ mod tests {
     }
 
     #[test]
-    fn test_add_0_1_0_2() {
-        let a: af32 = 0.1.into();
-        let b: af32 = 0.2.into();
-        let c = a + b;
+    fn test_addition_cases() {
+        let cases = vec![
+            ("0.1", "0.2", "0.3"),
+            ("1.0", "2.0", "3.0"),
+            ("5.5", "4.5", "10.0"),
+            ("0.25", "0.5", "0.75"),
+            ("-1.5", "2.0", "0.5"),
+            ("-2.5", "-2.5", "-5.0"),
+            ("10.125", "0.875", "11.0"),
+            // different fractional lengths
+            ("0.1", "0.02", "0.12"),
+            ("3.125", "0.003", "3.128"),
+        ];
 
-        let decoded = c.decode();
-        assert_eq!(decoded, "0.3");
+        for (a_str, b_str, expected) in cases {
+            let a: af32 = a_str.into();
+            let b: af32 = b_str.into();
+            let c = a + b;
+
+            assert_eq!(
+                c.decode(),
+                expected,
+                "Addition failed for {} + {}",
+                a_str,
+                b_str
+            );
+        }
+    }
+
+    #[test]
+    fn test_subtraction_cases() {
+        let cases = vec![
+            ("0.3", "0.2", "0.1"),
+            ("5.0", "2.0", "3.0"),
+            ("10.0", "4.5", "5.5"),
+            ("0.75", "0.5", "0.25"),
+            ("2.0", "-1.5", "3.5"),
+            ("-2.5", "-2.5", "0.0"),
+            ("11.0", "0.875", "10.125"),
+            ("0.12", "0.02", "0.10"),
+            ("3.128", "0.003", "3.125"),
+            // negatives crossing zero
+            ("-1.0", "2.0", "-3.0"),
+            ("2.0", "5.0", "-3.0"),
+        ];
+
+        for (a_str, b_str, expected) in cases {
+            let a: af32 = a_str.into();
+            let b: af32 = b_str.into();
+            let c = a - b;
+
+            assert_eq!(
+                c.decode(),
+                expected,
+                "Subtraction failed for {} - {}",
+                a_str,
+                b_str
+            );
+        }
+    }
+
+    #[test]
+    fn test_multiplication_cases() {
+        let cases = vec![
+            ("0.1", "0.2", "0.02"),
+            ("2.0", "3.0", "6.0"),
+            ("5.5", "2.0", "11.0"),
+            ("0.25", "0.5", "0.125"),
+            ("-1.5", "2.0", "-3.0"),
+            ("-2.5", "-2.0", "5.0"),
+            ("10.0", "0.1", "1.0"),
+            ("3.125", "0.003", "0.009375"),
+            ("1.5", "1.5", "2.25"),
+        ];
+
+        for (a_str, b_str, expected) in cases {
+            let a: af32 = a_str.into();
+            let b: af32 = b_str.into();
+            let c = a * b;
+
+            assert_eq!(
+                c.decode(),
+                expected,
+                "Multiplication failed for {} * {}",
+                a_str,
+                b_str
+            );
+        }
+    }
+
+    #[test]
+    fn test_division_cases() {
+        let cases = vec![
+            ("0.3", "0.1", "3.0"),
+            ("6.0", "3.0", "2.0"),
+            ("5.5", "2.0", "2.75"),
+            ("0.25", "0.5", "0.5"),
+            ("-3.0", "2.0", "-1.5"),
+            ("-5.0", "-2.5", "2.0"),
+            ("1.0", "10.0", "0.1"),
+            ("0.009", "0.003", "3.0"),
+            ("2.25", "1.5", "1.5"),
+        ];
+
+        for (a_str, b_str, expected) in cases {
+            let a: af32 = a_str.into();
+            let b: af32 = b_str.into();
+            let c = a / b;
+
+            assert_eq!(
+                c.decode(),
+                expected,
+                "Division failed for {} / {}",
+                a_str,
+                b_str
+            );
+        }
     }
 }
