@@ -75,6 +75,20 @@ mod tests {
     }
 
     #[test]
+    fn test_negation() {
+        let x: af32 = "5.0".into();
+        let y = x.neg();
+        assert_eq!(y.decode(), "-5.0");
+    
+        let x2: af32 = "-7.25".into();
+        let y2 = x2.neg();
+        assert_eq!(y2.decode(), "7.25");
+    
+        let zero: af32 = "0.0".into();
+        assert_eq!(zero.neg().decode(), "0.0");
+    }
+
+    #[test]
     fn test_addition_cases() {
         let cases = vec![
             ("0.1", "0.2", "0.3"),

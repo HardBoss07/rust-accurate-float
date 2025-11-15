@@ -18,6 +18,18 @@ impl af32 {
     pub fn decode(&self) -> String {
         decode(self.bits)
     }
+
+    pub fn neg(self) -> Self {
+        let decoded = decode(self.bits);
+
+        let neg_str = if decoded.starts_with('-') {
+            decoded.trim_start_matches('-').to_string()
+        } else {
+            format!("-{}", decoded)
+        };
+
+        af32::new_from_str(&neg_str)
+    }
 }
 
 // Conversion traits for .into()
